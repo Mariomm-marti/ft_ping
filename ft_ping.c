@@ -262,14 +262,14 @@ static inline void receive_packet(int const sockfd, t_host *const host) {
     return;
 
   // Print the stats for the packet and change the host stats
-  rtt = (get_time_micro() - get_timeval_micro(icmp.time)) / 1000.0;
+  rtt = get_time_micro() - get_timeval_micro(icmp.time);
   printf("%ld bytes from %s: ", length,
          inet_ntoa(icmp_src_addr_from_bytes(buffer)));
   switch (icmp.type) {
   case ICMP_ECHO:
   case ICMP_ECHO_REPLY:
     printf("icmp_seq=%hu ttl=%hhu time=%.3lfms\n", icmp.sequence,
-           icmp_ttl_from_bytes(buffer), rtt);
+           icmp_ttl_from_bytes(buffer), rtt / 1000.0);
     if (host->min_time_micro == 0.0 || host->min_time_micro > rtt)
       host->min_time_micro = rtt;
     if (host->max_time_micro < rtt)
