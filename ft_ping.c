@@ -50,6 +50,8 @@ void print_host_stats(t_host const *const host) {
   if (host->transmitted > 0)
     packet_loss = host->failed / host->transmitted * 100;
   printf("%u%% packet loss\n", packet_loss);
+  if (host->failed == host->received)
+    return;
   printf("round-trip min/avg/max/stddev = ");
   printf("%.3f/", host->min_time_micro / 1000.0);
   average_micro = 0.0;
