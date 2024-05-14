@@ -187,6 +187,7 @@ static inline bool should_send_packet(t_host const *const host) {
   if (host->last_timestamp == 0)
     return true;
 
+  // For flood it will infinitely return true ignoring intervals
   if (IS_FLOOD_SET(ping.settings.flags) && ping.settings.flood)
     return true;
 
@@ -195,6 +196,7 @@ static inline bool should_send_packet(t_host const *const host) {
   if (IS_INTERVAL_SET(ping.settings.flags))
     interval = ping.settings.interval;
 
+  // Default 1 second interval check
   if (now - host->last_timestamp <= interval * 1000000)
     return false;
   return true;
@@ -239,10 +241,10 @@ static inline void receive_packet(int const sockfd, t_host *const host) {
   t_icmp icmp;
   double rtt;
 
+  // Prepare to receive packet
   addr.sin_family = AF_INET;
   addr.sin_addr.s_addr = host->ip;
   length = sizeof(addr);
-
   if ((length = recvfrom(sockfd, buffer, 1024, 0, (struct sockaddr *)&addr,
                          (socklen_t *)&length)) < 0) {
     if (errno != EAGAIN && errno != EWOULDBLOCK)
@@ -250,12 +252,14 @@ static inline void receive_packet(int const sockfd, t_host *const host) {
     return;
   }
 
+  // Validate that we actually want the received packet
   if (icmp_from_bytes(&icmp, buffer) != 0)
     return;
 
   if (icmp.identifier != icmp_get_id() && icmp.type == ICMP_ECHO_REPLY)
     return;
 
+  // Print the stats for the packet and change the host stats
   rtt = (get_time_micro() - get_timeval_micro(icmp.time)) / 1000.0;
   printf("%ld bytes from %s: ", length,
          inet_ntoa(icmp_src_addr_from_bytes(buffer)));
@@ -283,12 +287,12 @@ static inline void receive_packet(int const sockfd, t_host *const host) {
     printf("Unimplemented type '%hhu', check RFC 792\n", icmp.type);
     host->failed++;
   }
+  host->received++;
 
+  // Finally, print out packet if verbose setting
   if (IS_VERBOSE_SET(ping.settings.flags) && ping.settings.verbose &&
       icmp.type != ICMP_ECHO_REPLY)
     print_packet(buffer);
-
-  host->received++;
 }
 
 static void host_loop(int const sockfd, t_host *const host) {
