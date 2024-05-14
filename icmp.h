@@ -12,6 +12,8 @@
 #define FULL_DATA_SIZE DATA_SIZE + (int)sizeof(struct s_icmp)
 #define ICMP_ECHO 8
 #define ICMP_ECHO_REPLY 0
+#define ICMP_NOT_REACHABLE 3
+#define ICMP_TTL_EXCEED 11
 
 typedef struct __attribute__((__packed__)) s_icmp {
   uint8_t type;

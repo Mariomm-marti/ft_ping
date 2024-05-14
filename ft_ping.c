@@ -226,6 +226,7 @@ static inline void receive_packet(int const sockfd, t_host *const host) {
   uint8_t buffer[1024];
   ssize_t length;
   t_icmp icmp;
+  double rtt;
 
   addr.sin_family = AF_INET;
   addr.sin_addr.s_addr = host->ip;
@@ -245,9 +246,25 @@ static inline void receive_packet(int const sockfd, t_host *const host) {
   if (icmp.identifier != icmp_get_id() && icmp.identifier != 0)
     return;
 
+  rtt = (get_time_micro() - icmp_timestamp_from_bytes(buffer)) / 1000.0;
+
   printf("%ld bytes from %s: ", length,
          inet_ntoa(icmp_src_addr_from_bytes(buffer)));
-  puts("");
+  switch (icmp.type) {
+  case ICMP_ECHO:
+  case ICMP_ECHO_REPLY:
+    printf("icmp_seq=%hu ttl=%hhu time=%.3lf\n", icmp.sequence,
+           icmp_ttl_from_bytes(buffer), rtt);
+    break;
+  case ICMP_TTL_EXCEED:
+    puts("Time to live exceeded");
+    break;
+  case ICMP_NOT_REACHABLE:
+    puts("Host not reachable");
+    break;
+  default:
+    printf("Unimplemented type '%hhu', check RFC 792\n", icmp.type);
+  }
 
   if (IS_VERBOSE_SET(ping.settings.flags) && icmp.type != ICMP_ECHO_REPLY) {
     print_packet(buffer);
