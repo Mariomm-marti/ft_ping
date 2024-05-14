@@ -45,10 +45,10 @@ void print_host_stats(t_host const *const host) {
 
   printf("--- %s ping statistics ---\n", host->host);
   printf("%u packets transmitted, ", host->transmitted);
-  printf("%u packets received, ", host->received);
+  printf("%u packets received, ", host->received - host->failed);
   packet_loss = 0;
   if (host->transmitted > 0)
-    packet_loss = 100 - (host->received / host->transmitted * 100);
+    packet_loss = host->failed / host->transmitted * 100;
   printf("%u%% packet loss\n", packet_loss);
   printf("round-trip min/avg/max/stddev = ");
   printf("%.3f/", host->min_time_micro / 1000.0);
@@ -56,8 +56,8 @@ void print_host_stats(t_host const *const host) {
   variance = 0.0;
   stddev = 0.0;
   if (host->transmitted > 0) {
-    average_micro = (double)host->total_time_micro / host->transmitted;
-    variance = (double)host->squared_total_time_micro / host->transmitted -
+    average_micro = host->total_time_micro / host->transmitted;
+    variance = host->squared_total_time_micro / host->transmitted -
                average_micro * average_micro;
     stddev = sqrt(variance);
   }
@@ -246,8 +246,7 @@ static inline void receive_packet(int const sockfd, t_host *const host) {
   if (icmp_from_bytes(&icmp, buffer) != 0)
     return;
 
-  // Checking ID 0 is important as not all ICMP types have identifier
-  if (icmp.identifier != icmp_get_id() && icmp.identifier != 0)
+  if (icmp.identifier != icmp_get_id() && icmp.type == ICMP_ECHO_REPLY)
     return;
 
   rtt = (get_time_micro() - get_timeval_micro(icmp.time)) / 1000.0;
@@ -258,22 +257,31 @@ static inline void receive_packet(int const sockfd, t_host *const host) {
   case ICMP_ECHO_REPLY:
     printf("icmp_seq=%hu ttl=%hhu time=%.3lfms\n", icmp.sequence,
            icmp_ttl_from_bytes(buffer), rtt);
+    if (host->min_time_micro == 0.0 || host->min_time_micro > rtt)
+      host->min_time_micro = rtt;
+    if (host->max_time_micro < rtt)
+      host->max_time_micro = rtt;
+    host->total_time_micro += rtt;
+    host->squared_total_time_micro += rtt * rtt;
     break;
   case ICMP_TTL_EXCEED:
     puts("Time to live exceeded");
+    host->failed++;
     break;
   case ICMP_NOT_REACHABLE:
     puts("Host not reachable");
+    host->failed++;
     break;
   default:
     printf("Unimplemented type '%hhu', check RFC 792\n", icmp.type);
+    host->failed++;
   }
 
   if (IS_VERBOSE_SET(ping.settings.flags) && ping.settings.verbose &&
-      icmp.type != ICMP_ECHO_REPLY) {
+      icmp.type != ICMP_ECHO_REPLY)
     print_packet(buffer);
-    return;
-  }
+
+  host->received++;
 }
 
 static void host_loop(int const sockfd, t_host *const host) {
