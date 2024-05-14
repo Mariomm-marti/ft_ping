@@ -195,7 +195,7 @@ static inline void send_packet(int const sockfd, t_host const *const host) {
   struct timeval now;
   uint8_t *icmp_payload;
   uint16_t icmp_len;
-  uint8_t icmp_data[DATA_SIZE + 1];
+  uint8_t icmp_data[DATA_SIZE];
 
   addr.sin_family = AF_INET;
   addr.sin_addr.s_addr = host->ip;
@@ -204,15 +204,15 @@ static inline void send_packet(int const sockfd, t_host const *const host) {
   icmp.identifier = icmp_get_id();
   icmp.sequence = host->transmitted;
 
-  bzero(icmp_data, DATA_SIZE + 1);
+  bzero(icmp_data, DATA_SIZE);
   if (IS_PATTERN_SET(ping.settings.flags)) {
-    strncpy((char *)icmp_data, ping.settings.pattern, DATA_SIZE);
+    strncpy((char *)icmp_data, ping.settings.pattern, DATA_SIZE - 1);
   }
 
   gettimeofday(&now, NULL);
   icmp.time = now;
 
-  icmp_len = DATA_SIZE + 1;
+  icmp_len = DATA_SIZE;
   icmp_payload = icmp_bytes(icmp, icmp_data, &icmp_len);
   if (sendto(sockfd, icmp_payload, icmp_len, 0, (struct sockaddr *)&addr,
              (socklen_t)sizeof(addr)) < 0) {
@@ -241,14 +241,15 @@ static inline void receive_packet(int const sockfd, t_host *const host) {
   if (icmp_from_bytes(&icmp, buffer) != 0)
     return;
 
+  // Checking ID 0 is important as not all ICMP types have identifier
+  if (icmp.identifier != icmp_get_id() && icmp.identifier != 0)
+    return;
+
   if (IS_VERBOSE_SET(ping.settings.flags) && icmp.type != ICMP_ECHO_REPLY) {
     print_packet(buffer);
     host->received++;
     return;
   }
-
-  if (icmp.identifier != getpid())
-    return;
 
   char *ip_txt = inet_ntoa(addr.sin_addr);
 

@@ -7,7 +7,7 @@
 #include <sys/time.h>
 
 #define WORDS_TO_BYTES(words) (words * 4)
-#define DATA_SIZE 56
+#define DATA_SIZE 52
 #define ICMP_ECHO 8
 #define ICMP_ECHO_REPLY 0
 

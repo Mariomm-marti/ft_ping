@@ -9,7 +9,7 @@ NAME := ft_ping
 LIBS := -lm
 
 %.o: %.c
-					/usr/bin/cc -Wall -Werror -Wextra -c $< -o $@ -O3
+					/usr/bin/cc -Wall -Werror -Wextra -c $< -o $@
 
 $(NAME): $(OBJS) $(OBJM)
 					@echo "Linking objects into $(NAME)"
