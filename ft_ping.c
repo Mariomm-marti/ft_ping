@@ -12,6 +12,7 @@
 #include <unistd.h>
 
 extern t_ft_ping ping;
+extern bool terminate_received;
 
 void remove_all_hosts(void) {
   t_host *htmp;
@@ -37,7 +38,7 @@ void add_host(char const *host) {
   *head = newhost;
 }
 
-void print_host_stats(t_host const *const host) {
+static inline void print_host_stats(t_host const *const host) {
   uint8_t packet_loss;
   double average_micro;
   double variance;
@@ -156,6 +157,10 @@ static int host_setup_socket(void) {
 }
 
 static inline bool should_loop(t_host const *const host) {
+  // If the terminating sequence has started, stop looping instantly
+  if (terminate_received)
+    return false;
+
   // If timeout is set, check if it has expired
   if (IS_TIMEOUT_SET(ping.settings.flags)) {
     bool const timeout_expired = get_time_micro() - host->first_timestamp >

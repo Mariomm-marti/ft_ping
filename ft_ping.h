@@ -50,7 +50,6 @@ typedef struct s_ft_ping {
 
 void remove_all_hosts(void);
 void add_host(char const *host);
-void print_host_stats(t_host const *const host);
 void main_loop(void);
 
 #endif // !FT_PING_H_
