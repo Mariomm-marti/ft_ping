@@ -162,7 +162,7 @@ static inline bool should_loop(t_host const *const host) {
       return false;
   }
 
-  // If count is set, check if it has been reached
+  // If count is set, check if all has been received and stop
   if (IS_COUNT_SET(ping.settings.flags)) {
     bool const count_reached = host->received >= ping.settings.count;
     if (count_reached)
@@ -175,6 +175,13 @@ static inline bool should_loop(t_host const *const host) {
 static inline bool should_send_packet(t_host const *const host) {
   t_host_time const now = get_time_micro();
   uint64_t interval;
+
+  // If count is set, check if enough has been sent and no more packets
+  if (IS_COUNT_SET(ping.settings.flags)) {
+    bool const count_reached = host->transmitted >= ping.settings.count;
+    if (count_reached)
+      return false;
+  }
 
   // The first packet should be instantly emitted
   if (host->last_timestamp == 0)
