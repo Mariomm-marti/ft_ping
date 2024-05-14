@@ -198,6 +198,12 @@ static inline bool should_send_packet(t_host const *const host) {
   if (IS_FLOOD_SET(ping.settings.flags) && ping.settings.flood)
     return true;
 
+  if (IS_PRELOAD_SET(ping.settings.flags)) {
+    bool const should_preload = host->transmitted < ping.settings.preload;
+    if (should_preload)
+      return true;
+  }
+
   // The default interval is 1 second, but can be overwritten by the settings
   interval = 1;
   if (IS_INTERVAL_SET(ping.settings.flags))
