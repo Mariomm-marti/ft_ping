@@ -71,7 +71,7 @@ static inline void print_host_header(t_host const *const host) {
 
   addr.s_addr = host->ip;
   ip_text = inet_ntoa(addr);
-  printf("PING %s (%s): %u data bytes", host->host, ip_text, DATA_SIZE);
+  printf("PING %s (%s): %u data bytes", host->host, ip_text, FULL_DATA_SIZE);
   if (IS_VERBOSE_SET(ping.settings.flags))
     printf(", id %#04x = %hu", icmp_get_id(), icmp_get_id());
   puts("");
@@ -245,17 +245,14 @@ static inline void receive_packet(int const sockfd, t_host *const host) {
   if (icmp.identifier != icmp_get_id() && icmp.identifier != 0)
     return;
 
+  printf("%ld bytes from %s: ", length,
+         inet_ntoa(icmp_src_addr_from_bytes(buffer)));
+  puts("");
+
   if (IS_VERBOSE_SET(ping.settings.flags) && icmp.type != ICMP_ECHO_REPLY) {
     print_packet(buffer);
-    host->received++;
     return;
   }
-
-  char *ip_txt = inet_ntoa(addr.sin_addr);
-
-  printf("64 bytes from %s: icmp_seq=%u ttl=%u time=28.199ms\n", ip_txt,
-         icmp.sequence, buffer[8]);
-  host->received++;
 }
 
 static void host_loop(int const sockfd, t_host *const host) {
