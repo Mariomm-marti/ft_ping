@@ -65,7 +65,7 @@ t_host_time icmp_timestamp_from_bytes(uint8_t const *const bytes) {
   return time.tv_sec * 1000000 + time.tv_usec;
 }
 
-struct in_addr icmp_dest_addr_from_bytes(uint8_t const *const bytes) {
-  // 16 bytes into the packet is the destination address
-  return *(struct in_addr *)(bytes + 16);
+struct in_addr icmp_src_addr_from_bytes(uint8_t const *const bytes) {
+  // 12 bytes into the packet is the source address
+  return *(struct in_addr *)(bytes + 12);
 }

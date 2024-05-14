@@ -66,11 +66,11 @@ uint8_t icmp_ttl_from_bytes(uint8_t const *const bytes);
 t_host_time icmp_timestamp_from_bytes(uint8_t const *const bytes);
 
 /*
- * Extracts from a sequence of _bytes_ the destination address.
+ * Extracts from a sequence of _bytes_ the source address.
  *
  * The _bytes_ are assumed to be received from a raw socket, so an initial
- * IP header is expected, which will be used to extract the destination addr.
+ * IP header is expected, which will be used to extract the source addr.
  */
-struct in_addr icmp_dest_addr_from_bytes(uint8_t const *const bytes);
+struct in_addr icmp_src_addr_from_bytes(uint8_t const *const bytes);
 
 #endif // !ICMP_H_
