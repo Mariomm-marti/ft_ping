@@ -272,6 +272,9 @@ static inline void receive_packet(int const sockfd, t_host *const host) {
   if (icmp_from_bytes(&icmp, buffer) != 0)
     return;
 
+  if (icmp.type == ICMP_ECHO)
+    return;
+
   if (icmp.identifier != icmp_get_id() && icmp.type == ICMP_ECHO_REPLY)
     return;
 
@@ -280,7 +283,6 @@ static inline void receive_packet(int const sockfd, t_host *const host) {
   printf("%ld bytes from %s: ", length,
          inet_ntoa(icmp_src_addr_from_bytes(buffer)));
   switch (icmp.type) {
-  case ICMP_ECHO:
   case ICMP_ECHO_REPLY:
     printf("icmp_seq=%hu ttl=%hhu time=%.3lfms\n", icmp.sequence,
            icmp_ttl_from_bytes(buffer), rtt / 1000.0);
