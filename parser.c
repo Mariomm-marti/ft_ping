@@ -1,3 +1,4 @@
+#include "parser.h"
 #include "ft_ping.h"
 #include "utils.h"
 #include <argp.h>
@@ -38,6 +39,10 @@ static int parse_argument(int key, char *arg, struct argp_state *state) {
     ping.settings.linger = strtol(arg, &argend, 10);
     ping.settings.flags = SET_LINGER_FLAG(ping.settings.flags);
     break;
+  case 'f':
+    ping.settings.flood = true;
+    ping.settings.flags = SET_FLOOD_FLAG(ping.settings.flags);
+    break;
   case 'l':
     ping.settings.preload = strtol(arg, &argend, 10);
     ping.settings.flags = SET_PRELOAD_FLAG(ping.settings.flags);
@@ -75,6 +80,7 @@ void load_arguments(int argc, char **argv) {
       {"verbose", 'v', 0, 0, "verbose output", 0},
       {"timeout", 'w', "N", 0, "stop after N seconds", 0},
       {"linger", 'W', "N", 0, "number of seconds to wait for response", 0},
+      {"flood", 'f', 0, 0, "flood ping (root only)", 0},
       {"preload", 'l', "NUMBER", 0,
        "send NUMBER packets as fast as possible before\nfalling into normal "
        "mode of behavior",

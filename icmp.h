@@ -1,6 +1,5 @@
 #ifndef ICMP_H_
 #define ICMP_H_
-#include <netinet/in.h>
 #pragma once
 
 #include "ft_ping.h"

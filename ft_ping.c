@@ -1,5 +1,6 @@
 #include "ft_ping.h"
 #include "icmp.h"
+#include "parser.h"
 #include "utils.h"
 #include <errno.h>
 #include <fcntl.h>
@@ -72,7 +73,7 @@ static inline void print_host_header(t_host const *const host) {
   addr.s_addr = host->ip;
   ip_text = inet_ntoa(addr);
   printf("PING %s (%s): %u data bytes", host->host, ip_text, FULL_DATA_SIZE);
-  if (IS_VERBOSE_SET(ping.settings.flags))
+  if (IS_VERBOSE_SET(ping.settings.flags) && ping.settings.verbose)
     printf(", id %#04x = %hu", icmp_get_id(), icmp_get_id());
   puts("");
 }
@@ -179,6 +180,9 @@ static inline bool should_send_packet(t_host const *const host) {
   if (host->last_timestamp == 0)
     return true;
 
+  if (IS_FLOOD_SET(ping.settings.flags) && ping.settings.flood)
+    return true;
+
   // The default interval is 1 second, but can be overwritten by the settings
   interval = 1;
   if (IS_INTERVAL_SET(ping.settings.flags))
@@ -265,7 +269,8 @@ static inline void receive_packet(int const sockfd, t_host *const host) {
     printf("Unimplemented type '%hhu', check RFC 792\n", icmp.type);
   }
 
-  if (IS_VERBOSE_SET(ping.settings.flags) && icmp.type != ICMP_ECHO_REPLY) {
+  if (IS_VERBOSE_SET(ping.settings.flags) && ping.settings.verbose &&
+      icmp.type != ICMP_ECHO_REPLY) {
     print_packet(buffer);
     return;
   }
