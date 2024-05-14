@@ -246,14 +246,13 @@ static inline void receive_packet(int const sockfd, t_host *const host) {
   if (icmp.identifier != icmp_get_id() && icmp.identifier != 0)
     return;
 
-  rtt = (get_time_micro() - icmp_timestamp_from_bytes(buffer)) / 1000.0;
-
+  rtt = (get_time_micro() - get_timeval_micro(icmp.time)) / 1000.0;
   printf("%ld bytes from %s: ", length,
          inet_ntoa(icmp_src_addr_from_bytes(buffer)));
   switch (icmp.type) {
   case ICMP_ECHO:
   case ICMP_ECHO_REPLY:
-    printf("icmp_seq=%hu ttl=%hhu time=%.3lf\n", icmp.sequence,
+    printf("icmp_seq=%hu ttl=%hhu time=%.3lfms\n", icmp.sequence,
            icmp_ttl_from_bytes(buffer), rtt);
     break;
   case ICMP_TTL_EXCEED:
