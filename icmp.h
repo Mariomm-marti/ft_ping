@@ -61,14 +61,6 @@ int icmp_from_bytes(t_icmp *icmp, uint8_t const *const bytes);
 uint8_t icmp_ttl_from_bytes(uint8_t const *const bytes);
 
 /*
- * Extracts from a sequence of _bytes_ the timestamp in t_host_time format.
- *
- * The _bytes_ are assumed to be received from a raw socket, so an initial
- * IP header is expected, which will be used to extract the timestamp.
- */
-t_host_time icmp_timestamp_from_bytes(uint8_t const *const bytes);
-
-/*
  * Extracts from a sequence of _bytes_ the source address.
  *
  * The _bytes_ are assumed to be received from a raw socket, so an initial

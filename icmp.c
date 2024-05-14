@@ -55,16 +55,6 @@ uint8_t icmp_ttl_from_bytes(uint8_t const *const bytes) {
   return *(bytes + 8);
 }
 
-t_host_time icmp_timestamp_from_bytes(uint8_t const *const bytes) {
-  uint8_t const ip_header_length = *bytes & 0xf;
-  struct timeval time;
-
-  // 8 bytes after the IP header is timeval
-  time = *(struct timeval *)(bytes + WORDS_TO_BYTES(ip_header_length) + 8);
-
-  return time.tv_sec * 1000000 + time.tv_usec;
-}
-
 struct in_addr icmp_src_addr_from_bytes(uint8_t const *const bytes) {
   // 12 bytes into the packet is the source address
   return *(struct in_addr *)(bytes + 12);
