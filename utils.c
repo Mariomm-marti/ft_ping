@@ -37,6 +37,10 @@ t_host_time get_time_micro(void) {
   return now.tv_sec * 1000000 + now.tv_usec;
 }
 
+t_host_time get_timeval_micro(struct timeval time) {
+  return time.tv_sec * 1000000 + time.tv_usec;
+}
+
 void terminate(int status_code, char *message) {
   remove_all_hosts();
   if (message)
