@@ -219,6 +219,7 @@ static inline void send_packet(int const sockfd, t_host const *const host) {
 
   addr.sin_family = AF_INET;
   addr.sin_addr.s_addr = host->ip;
+  addr.sin_port = 0;
 
   icmp.type = ICMP_ECHO;
   icmp.identifier = icmp_get_id();
@@ -251,6 +252,8 @@ static inline void receive_packet(int const sockfd, t_host *const host) {
   // Prepare to receive packet
   addr.sin_family = AF_INET;
   addr.sin_addr.s_addr = host->ip;
+  addr.sin_port = 0;
+
   length = sizeof(addr);
   if ((length = recvfrom(sockfd, buffer, 1024, 0, (struct sockaddr *)&addr,
                          (socklen_t *)&length)) < 0) {
