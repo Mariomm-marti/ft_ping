@@ -1,5 +1,6 @@
 #ifndef ICMP_H_
 #define ICMP_H_
+#include <netinet/in.h>
 #pragma once
 
 #include "ft_ping.h"
@@ -49,22 +50,27 @@ uint8_t *icmp_bytes(t_icmp icmp, uint8_t const *data, uint16_t *datalen);
 int icmp_from_bytes(t_icmp *icmp, uint8_t const *const bytes);
 
 /*
- * Extracts from a sequence of _bytes_ the TTL. A verify of the checksum
- * is done and, if failed, returns 1.
+ * Extracts from a sequence of _bytes_ the TTL.
  *
  * The _bytes_ are assumed to be received from a raw socket, so an initial
  * IP header is expected, which will be used to extract the TTL.
  */
-int icmp_ttl_from_bytes(uint8_t *ttl, uint8_t const *const bytes);
+uint8_t icmp_ttl_from_bytes(uint8_t const *const bytes);
 
 /*
  * Extracts from a sequence of _bytes_ the timestamp in t_host_time format.
- * A verify of the checksum is done and, if failed, returns 1.
  *
  * The _bytes_ are assumed to be received from a raw socket, so an initial
- * IP header is expected, which will be used to extract the TTL.
+ * IP header is expected, which will be used to extract the timestamp.
  */
-int icmp_timestamp_from_bytes(t_host_time *timestamp,
-                              uint8_t const *const bytes);
+t_host_time icmp_timestamp_from_bytes(uint8_t const *const bytes);
+
+/*
+ * Extracts from a sequence of _bytes_ the destination address.
+ *
+ * The _bytes_ are assumed to be received from a raw socket, so an initial
+ * IP header is expected, which will be used to extract the destination addr.
+ */
+struct in_addr icmp_dest_addr_from_bytes(uint8_t const *const bytes);
 
 #endif // !ICMP_H_

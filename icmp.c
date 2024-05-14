@@ -50,29 +50,22 @@ int icmp_from_bytes(t_icmp *icmp, uint8_t const *const bytes) {
   return 0;
 }
 
-int icmp_ttl_from_bytes(uint8_t *ttl, uint8_t const *const bytes) {
-  uint16_t const total_length = ntohs(*(uint16_t *)(bytes + 2));
-
-  if (!is_valid_checksum(bytes, total_length))
-    return 1;
-
-  *ttl = *(bytes + 8);
-
-  return 0;
+uint8_t icmp_ttl_from_bytes(uint8_t const *const bytes) {
+  // 8 bytes into the packet (IP header) is the TTL
+  return *(bytes + 8);
 }
 
-int icmp_timestamp_from_bytes(t_host_time *timestamp,
-                              uint8_t const *const bytes) {
-  uint16_t const total_length = ntohs(*(uint16_t *)(bytes + 2));
+t_host_time icmp_timestamp_from_bytes(uint8_t const *const bytes) {
   uint8_t const ip_header_length = *bytes & 0xf;
   struct timeval time;
 
-  if (!is_valid_checksum(bytes, total_length))
-    return 1;
-
-  // 8 bytes are before timeval
+  // 8 bytes after the IP header is timeval
   time = *(struct timeval *)(bytes + WORDS_TO_BYTES(ip_header_length) + 8);
-  *timestamp = time.tv_sec * 1000000 + time.tv_usec;
 
-  return 0;
+  return time.tv_sec * 1000000 + time.tv_usec;
+}
+
+struct in_addr icmp_dest_addr_from_bytes(uint8_t const *const bytes) {
+  // 16 bytes into the packet is the destination address
+  return *(struct in_addr *)(bytes + 16);
 }
