@@ -99,6 +99,8 @@ void load_arguments(int argc, char **argv) {
   args.options = options;
   args.parser = parse_argument;
 
+  if (argc < 2)
+    terminate(1, "ft_ping: missing host operand");
   if (argp_parse(&args, argc, argv, 0, NULL, NULL) != 0)
     terminate(1, "Error parsing options. Try using --help");
 }
