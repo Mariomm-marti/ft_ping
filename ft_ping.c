@@ -3,7 +3,6 @@
 #include "parser.h"
 #include "utils.h"
 #include <errno.h>
-#include <fcntl.h>
 #include <math.h>
 #include <netinet/ip.h>
 #include <stdio.h>
@@ -135,8 +134,6 @@ static int host_setup_socket(void) {
 
   if ((sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP)) < 0)
     terminate(1, "ft_ping: unexpected error whilst creating socket");
-  if (fcntl(sockfd, F_SETFL, O_NONBLOCK) < 0)
-    terminate(1, "ft_ping: unexpected error whilst configuring FD");
   if (IS_TTL_SET(ping.settings.flags)) {
     sockopt = ping.settings.ttl;
     if (setsockopt(sockfd, IPPROTO_IP, IP_TTL, &sockopt, sizeof(uint64_t)) < 0)
@@ -315,18 +312,32 @@ static inline void receive_packet(int const sockfd, t_host *const host) {
 }
 
 static void host_loop(int const sockfd, t_host *const host) {
+  fd_set read;
+  fd_set write;
+  struct timeval timeout;
   t_host_time time;
 
   host->first_timestamp = get_time_micro();
+  timeout.tv_usec = 20;
   while (should_loop(host)) {
-    time = get_time_micro();
-    if (should_send_packet(host)) {
-      send_packet(sockfd, host);
-      host->transmitted++;
-      host->last_timestamp = time;
+    FD_ZERO(&read);
+    FD_ZERO(&write);
+    FD_SET(sockfd, &read);
+    FD_SET(sockfd, &write);
+    if (select(sockfd + 1, &read, &write, NULL, &timeout) <= 0) {
+      usleep(20);
+      continue;
     }
-    receive_packet(sockfd, host);
-    usleep(20);
+    time = get_time_micro();
+    if (FD_ISSET(sockfd, &write)) {
+      if (should_send_packet(host)) {
+        send_packet(sockfd, host);
+        host->transmitted++;
+        host->last_timestamp = time;
+      }
+    }
+    if (FD_ISSET(sockfd, &read))
+      receive_packet(sockfd, host);
   }
 }
 
